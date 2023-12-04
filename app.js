@@ -56,6 +56,10 @@ app.get('/signup', (req, res) => {
     res.render('signup')
 })
 
+app.get("/reset", (req, res) => {
+    res.render('reset', {error: null, success: null})
+})
+
 //Handles the signup request for new users
 app.post('/signup', (req, res) => {
     const user = req.body;
@@ -71,15 +75,15 @@ app.post('/signup', (req, res) => {
     })
 })
 
-// Handle login request for existing users
-// app.post('/login', passport.authenticate('local', {failureRedirect:'/login'}, (req, res) => {
-//     res.redirect('/books')
-// }))
+//Handle login request for existing users
+app.post('/login', passport.authenticate('local', {failureRedirect:'/login'}, (req, res) => {
+    res.redirect('/books')
+}))
 
-app.post('/login', passport.authenticate('local', {
-    failureRedirect: '/login',
-    successRedirect: '/books'
-}));
+// app.post('/login', passport.authenticate('local', {
+//     failureRedirect: '/login',
+//     successRedirect: '/books'
+// }));
 
 
 app.post('/logout', (req, res) => {
@@ -92,6 +96,26 @@ app.post('/logout', (req, res) => {
     });
 });
 
+
+//Handles the change password request
+app.post('/reset', (req, res) => {
+    const userInfo = req.body
+    userModel.findOne({ username: userInfo.username}, (err, user) => {
+        if (err) {
+            console.log(err);
+            res.render('reset', { error: err })
+        } else {
+            user.changePassword(userInfo.password, userInfo.new_password, (err, user) => {
+                if (err) {
+                    console.log(err)
+                    res.status(500).send(err)
+                } else {
+                    res.render('reset', {error: null, success: "Password Updated Successfully"})
+                }
+            })
+        }
+    })
+})
 
 app.listen(PORT, () => {
     console.log(`http:\\localhost:${PORT}`)
